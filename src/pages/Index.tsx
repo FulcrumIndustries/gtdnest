@@ -2,6 +2,7 @@ import { useState } from "react";
 import { TaskInput } from "@/components/TaskInput";
 import { TaskList, Task, TaskStatus } from "@/components/TaskList";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { DragDropContext, DropResult } from "react-beautiful-dnd";
 
 const INITIAL_TASKS: Task[] = [
   {
@@ -26,6 +27,8 @@ const INITIAL_TASKS: Task[] = [
   },
 ];
 
+const AVAILABLE_TAGS = ["work", "personal", "important", "urgent", "health", "finance"];
+
 const Index = () => {
   const [tasks, setTasks] = useState<Task[]>(INITIAL_TASKS);
 
@@ -47,11 +50,36 @@ const Index = () => {
     );
   };
 
+  const handleDragEnd = (result: DropResult) => {
+    const { destination, source, draggableId } = result;
+
+    if (!destination) return;
+
+    if (
+      destination.droppableId === source.droppableId &&
+      destination.index === source.index
+    ) {
+      return;
+    }
+
+    const updatedTasks = tasks.map((task) => {
+      if (task.id === draggableId) {
+        return {
+          ...task,
+          status: destination.droppableId as TaskStatus,
+        };
+      }
+      return task;
+    });
+
+    setTasks(updatedTasks);
+  };
+
   return (
     <div className="min-h-screen p-8 bg-background animate-fade-in">
       <div className="max-w-4xl mx-auto space-y-8">
         <div className="space-y-2 text-center">
-          <h1 className="text-4xl font-bold tracking-tight">Task Manager</h1>
+          <h1 className="text-4xl font-bold tracking-tight">GTD Nest</h1>
           <p className="text-muted-foreground">
             Organize your tasks, get things done.
           </p>
@@ -59,51 +87,58 @@ const Index = () => {
 
         <TaskInput onAddTask={handleAddTask} />
 
-        <Tabs defaultValue="today" className="w-full">
-          <TabsList className="grid w-full grid-cols-5">
-            <TabsTrigger value="today">Today</TabsTrigger>
-            <TabsTrigger value="tomorrow">Tomorrow</TabsTrigger>
-            <TabsTrigger value="next">Next Actions</TabsTrigger>
-            <TabsTrigger value="waiting">Waiting For</TabsTrigger>
-            <TabsTrigger value="someday">Someday</TabsTrigger>
-          </TabsList>
+        <DragDropContext onDragEnd={handleDragEnd}>
+          <Tabs defaultValue="today" className="w-full">
+            <TabsList className="grid w-full grid-cols-5">
+              <TabsTrigger value="today">Today</TabsTrigger>
+              <TabsTrigger value="tomorrow">Tomorrow</TabsTrigger>
+              <TabsTrigger value="next">Next Actions</TabsTrigger>
+              <TabsTrigger value="waiting">Waiting For</TabsTrigger>
+              <TabsTrigger value="someday">Someday</TabsTrigger>
+            </TabsList>
 
-          <TabsContent value="today" className="mt-6">
-            <TaskList
-              tasks={tasks}
-              status="today"
-              onComplete={handleComplete}
-            />
-          </TabsContent>
-          <TabsContent value="tomorrow" className="mt-6">
-            <TaskList
-              tasks={tasks}
-              status="tomorrow"
-              onComplete={handleComplete}
-            />
-          </TabsContent>
-          <TabsContent value="next" className="mt-6">
-            <TaskList
-              tasks={tasks}
-              status="next"
-              onComplete={handleComplete}
-            />
-          </TabsContent>
-          <TabsContent value="waiting" className="mt-6">
-            <TaskList
-              tasks={tasks}
-              status="waiting"
-              onComplete={handleComplete}
-            />
-          </TabsContent>
-          <TabsContent value="someday" className="mt-6">
-            <TaskList
-              tasks={tasks}
-              status="someday"
-              onComplete={handleComplete}
-            />
-          </TabsContent>
-        </Tabs>
+            <TabsContent value="today" className="mt-6">
+              <TaskList
+                tasks={tasks}
+                status="today"
+                onComplete={handleComplete}
+                availableTags={AVAILABLE_TAGS}
+              />
+            </TabsContent>
+            <TabsContent value="tomorrow" className="mt-6">
+              <TaskList
+                tasks={tasks}
+                status="tomorrow"
+                onComplete={handleComplete}
+                availableTags={AVAILABLE_TAGS}
+              />
+            </TabsContent>
+            <TabsContent value="next" className="mt-6">
+              <TaskList
+                tasks={tasks}
+                status="next"
+                onComplete={handleComplete}
+                availableTags={AVAILABLE_TAGS}
+              />
+            </TabsContent>
+            <TabsContent value="waiting" className="mt-6">
+              <TaskList
+                tasks={tasks}
+                status="waiting"
+                onComplete={handleComplete}
+                availableTags={AVAILABLE_TAGS}
+              />
+            </TabsContent>
+            <TabsContent value="someday" className="mt-6">
+              <TaskList
+                tasks={tasks}
+                status="someday"
+                onComplete={handleComplete}
+                availableTags={AVAILABLE_TAGS}
+              />
+            </TabsContent>
+          </Tabs>
+        </DragDropContext>
       </div>
     </div>
   );
