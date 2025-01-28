@@ -1,6 +1,13 @@
-import { Check, Clock, ArrowRight } from "lucide-react";
+import { Check, Clock, ArrowRight, MoveVertical } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Droppable, Draggable } from "react-beautiful-dnd";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Button } from "@/components/ui/button";
 
 export type TaskStatus = "today" | "tomorrow" | "next" | "waiting" | "someday";
 
@@ -16,6 +23,7 @@ interface TaskListProps {
   tasks: Task[];
   status: TaskStatus;
   onComplete: (id: string) => void;
+  onMoveTask: (taskId: string, newStatus: TaskStatus) => void;
   availableTags: string[];
 }
 
@@ -30,7 +38,15 @@ const getStatusIcon = (status: TaskStatus) => {
   }
 };
 
-export const TaskList = ({ tasks, status, onComplete, availableTags }: TaskListProps) => {
+const STATUS_LABELS: Record<TaskStatus, string> = {
+  today: "Today",
+  tomorrow: "Tomorrow",
+  next: "Next Actions",
+  waiting: "Waiting For",
+  someday: "Someday",
+};
+
+export const TaskList = ({ tasks, status, onComplete, onMoveTask, availableTags }: TaskListProps) => {
   const filteredTasks = tasks.filter((task) => task.status === status);
 
   return (
@@ -81,6 +97,24 @@ export const TaskList = ({ tasks, status, onComplete, availableTags }: TaskListP
                       ))}
                     </div>
                   )}
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="icon">
+                        <MoveVertical className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent>
+                      {Object.entries(STATUS_LABELS).map(([key, label]) => (
+                        <DropdownMenuItem
+                          key={key}
+                          onClick={() => onMoveTask(task.id, key as TaskStatus)}
+                          disabled={key === status}
+                        >
+                          Move to {label}
+                        </DropdownMenuItem>
+                      ))}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </div>
               )}
             </Draggable>

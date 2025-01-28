@@ -27,10 +27,11 @@ const INITIAL_TASKS: Task[] = [
   },
 ];
 
-const AVAILABLE_TAGS = ["work", "personal", "important", "urgent", "health", "finance"];
+const INITIAL_TAGS = ["work", "personal", "important", "urgent", "health", "finance"];
 
 const Index = () => {
   const [tasks, setTasks] = useState<Task[]>(INITIAL_TASKS);
+  const [availableTags, setAvailableTags] = useState<string[]>(INITIAL_TAGS);
 
   const handleAddTask = (title: string, tags?: string[]) => {
     const newTask: Task = {
@@ -49,6 +50,18 @@ const Index = () => {
         task.id === id ? { ...task, completed: !task.completed } : task
       )
     );
+  };
+
+  const handleMoveTask = (taskId: string, newStatus: TaskStatus) => {
+    setTasks(
+      tasks.map((task) =>
+        task.id === taskId ? { ...task, status: newStatus } : task
+      )
+    );
+  };
+
+  const handleAddTag = (newTag: string) => {
+    setAvailableTags([...availableTags, newTag]);
   };
 
   const handleDragEnd = (result: DropResult) => {
@@ -86,7 +99,11 @@ const Index = () => {
           </p>
         </div>
 
-        <TaskInput onAddTask={handleAddTask} availableTags={AVAILABLE_TAGS} />
+        <TaskInput 
+          onAddTask={handleAddTask} 
+          availableTags={availableTags} 
+          onAddTag={handleAddTag}
+        />
 
         <DragDropContext onDragEnd={handleDragEnd}>
           <Tabs defaultValue="today" className="w-full">
@@ -103,7 +120,8 @@ const Index = () => {
                 tasks={tasks}
                 status="today"
                 onComplete={handleComplete}
-                availableTags={AVAILABLE_TAGS}
+                onMoveTask={handleMoveTask}
+                availableTags={availableTags}
               />
             </TabsContent>
             <TabsContent value="tomorrow" className="mt-6">
@@ -111,7 +129,8 @@ const Index = () => {
                 tasks={tasks}
                 status="tomorrow"
                 onComplete={handleComplete}
-                availableTags={AVAILABLE_TAGS}
+                onMoveTask={handleMoveTask}
+                availableTags={availableTags}
               />
             </TabsContent>
             <TabsContent value="next" className="mt-6">
@@ -119,7 +138,8 @@ const Index = () => {
                 tasks={tasks}
                 status="next"
                 onComplete={handleComplete}
-                availableTags={AVAILABLE_TAGS}
+                onMoveTask={handleMoveTask}
+                availableTags={availableTags}
               />
             </TabsContent>
             <TabsContent value="waiting" className="mt-6">
@@ -127,7 +147,8 @@ const Index = () => {
                 tasks={tasks}
                 status="waiting"
                 onComplete={handleComplete}
-                availableTags={AVAILABLE_TAGS}
+                onMoveTask={handleMoveTask}
+                availableTags={availableTags}
               />
             </TabsContent>
             <TabsContent value="someday" className="mt-6">
@@ -135,7 +156,8 @@ const Index = () => {
                 tasks={tasks}
                 status="someday"
                 onComplete={handleComplete}
-                availableTags={AVAILABLE_TAGS}
+                onMoveTask={handleMoveTask}
+                availableTags={availableTags}
               />
             </TabsContent>
           </Tabs>
