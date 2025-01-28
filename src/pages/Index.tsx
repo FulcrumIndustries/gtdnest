@@ -32,12 +32,13 @@ const AVAILABLE_TAGS = ["work", "personal", "important", "urgent", "health", "fi
 const Index = () => {
   const [tasks, setTasks] = useState<Task[]>(INITIAL_TASKS);
 
-  const handleAddTask = (title: string) => {
+  const handleAddTask = (title: string, tags?: string[]) => {
     const newTask: Task = {
       id: Date.now().toString(),
       title,
       status: "today",
       completed: false,
+      tags,
     };
     setTasks([...tasks, newTask]);
   };
@@ -85,7 +86,7 @@ const Index = () => {
           </p>
         </div>
 
-        <TaskInput onAddTask={handleAddTask} />
+        <TaskInput onAddTask={handleAddTask} availableTags={AVAILABLE_TAGS} />
 
         <DragDropContext onDragEnd={handleDragEnd}>
           <Tabs defaultValue="today" className="w-full">
