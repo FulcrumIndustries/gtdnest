@@ -30,7 +30,14 @@ const INITIAL_TASKS: Task[] = [
   },
 ];
 
-const INITIAL_TAGS = ["work", "personal", "important", "urgent", "health", "finance"];
+const INITIAL_TAGS = [
+  "work",
+  "personal",
+  "important",
+  "urgent",
+  "health",
+  "finance",
+];
 
 interface AppState {
   tasks: Task[];
@@ -44,7 +51,7 @@ const Index = () => {
 
   // Load state from localStorage on component mount
   useEffect(() => {
-    const savedState = localStorage.getItem('gtdNestState');
+    const savedState = localStorage.getItem("gtdNestState");
     if (savedState) {
       const { tasks: savedTasks, tags: savedTags } = JSON.parse(savedState);
       setTasks(savedTasks);
@@ -58,7 +65,7 @@ const Index = () => {
       tasks,
       tags: availableTags,
     };
-    localStorage.setItem('gtdNestState', JSON.stringify(state));
+    localStorage.setItem("gtdNestState", JSON.stringify(state));
   }, [tasks, availableTags]);
 
   const handleAddTask = (title: string, tags?: string[]) => {
@@ -117,16 +124,26 @@ const Index = () => {
     setTasks(updatedTasks);
   };
 
+  const handleDeleteTask = (id: string) => {
+    setTasks(tasks.filter((task) => task.id !== id));
+    toast({
+      title: "Task deleted",
+      description: "Your task has been deleted successfully.",
+    });
+  };
+
   const exportState = () => {
     const state: AppState = {
       tasks,
       tags: availableTags,
     };
-    const blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' });
+    const blob = new Blob([JSON.stringify(state, null, 2)], {
+      type: "application/json",
+    });
     const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
+    const a = document.createElement("a");
     a.href = url;
-    a.download = 'gtd-nest-backup.json';
+    a.download = "gtd-nest-backup.json";
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -163,92 +180,128 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen p-8 bg-background animate-fade-in">
-      <div className="max-w-4xl mx-auto space-y-8">
-        <div className="space-y-2 text-center">
-          <h1 className="text-4xl font-bold tracking-tight">GTD Nest</h1>
-          <p className="text-muted-foreground">
-            Organize your tasks, get things done.
+    <div className="min-h-screen bg-gradient-to-b from-[#0F172A] to-[#1E293B] relative overflow-hidden">
+      {/* Subtle background pattern */}
+      <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-[0.02]" />
+
+      {/* Floating orbs with more subtle colors */}
+      <div className="absolute inset-0 overflow-hidden -z-10">
+        <div
+          className="absolute w-[800px] h-[800px] rounded-full bg-[#3B82F6]/5 blur-3xl 
+          animate-float top-0 -left-96"
+        />
+        <div
+          className="absolute w-[600px] h-[600px] rounded-full bg-[#2563EB]/5 blur-3xl 
+          animate-float-delayed -bottom-64 -right-32"
+        />
+      </div>
+
+      <div className="max-w-5xl mx-auto p-6 sm:p-8 space-y-8">
+        {/* Header section with improved typography */}
+        <header className="space-y-4 text-center py-12">
+          <h1
+            className="text-4xl sm:text-6xl font-bold tracking-tight text-white 
+            animate-fade-in font-display"
+          >
+            GTD Nest
+            <span className="text-[#3B82F6]">.</span>
+          </h1>
+          <p className="text-lg sm:text-xl text-slate-400 animate-fade-in-up font-light">
+            Organize your tasks, get things done ✨
           </p>
-          <div className="flex justify-center gap-4 mt-4">
-            <Button onClick={exportState} variant="outline" size="sm">
-              <Download className="w-4 h-4 mr-2" />
+
+          {/* Action buttons with improved styling */}
+          <div className="flex flex-wrap justify-center gap-4 mt-8">
+            <Button
+              onClick={exportState}
+              variant="outline"
+              size="lg"
+              className="group relative bg-slate-900/50 border-slate-700 text-slate-300 
+              hover:bg-[#3B82F6]/10 hover:border-[#3B82F6] hover:text-[#3B82F6] 
+              transition-all duration-300"
+            >
+              <Download
+                className="w-5 h-5 mr-2 group-hover:scale-110 group-hover:translate-y-0.5 
+                transition-all duration-300"
+              />
               Export Data
             </Button>
-            <Button variant="outline" size="sm" className="relative">
+            <Button
+              variant="outline"
+              size="lg"
+              className="group relative bg-slate-900/50 border-slate-700 text-slate-300 
+              hover:bg-[#3B82F6]/10 hover:border-[#3B82F6] hover:text-[#3B82F6] 
+              transition-all duration-300"
+            >
               <input
                 type="file"
                 accept=".json"
                 onChange={importState}
                 className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
               />
-              <Upload className="w-4 h-4 mr-2" />
+              <Upload
+                className="w-5 h-5 mr-2 group-hover:scale-110 group-hover:-translate-y-0.5 
+                transition-all duration-300"
+              />
               Import Data
             </Button>
           </div>
+        </header>
+
+        {/* Task input section with glassmorphism */}
+        <div
+          className="bg-slate-900/50 backdrop-blur-xl rounded-2xl p-6 sm:p-8 
+          border border-slate-800/50 shadow-xl"
+        >
+          <TaskInput
+            onAddTask={handleAddTask}
+            availableTags={availableTags}
+            onAddTag={handleAddTag}
+          />
         </div>
 
-        <TaskInput 
-          onAddTask={handleAddTask} 
-          availableTags={availableTags} 
-          onAddTag={handleAddTag}
-        />
-
+        {/* Tasks section */}
         <DragDropContext onDragEnd={handleDragEnd}>
           <Tabs defaultValue="today" className="w-full">
-            <TabsList className="grid w-full grid-cols-5">
-              <TabsTrigger value="today">Today</TabsTrigger>
-              <TabsTrigger value="tomorrow">Tomorrow</TabsTrigger>
-              <TabsTrigger value="next">Next Actions</TabsTrigger>
-              <TabsTrigger value="waiting">Waiting For</TabsTrigger>
-              <TabsTrigger value="someday">Someday</TabsTrigger>
+            <TabsList
+              className="flex w-full p-1 bg-slate-900/50 backdrop-blur-xl 
+              rounded-xl border border-slate-800/50 mb-6"
+            >
+              {["today", "tomorrow", "next", "waiting", "someday"].map(
+                (tab) => (
+                  <TabsTrigger
+                    key={tab}
+                    value={tab}
+                    className="flex-1 text-base sm:text-lg rounded-lg py-3 
+                  data-[state=active]:bg-[#3B82F6] data-[state=active]:text-white 
+                  text-slate-400 hover:text-slate-200 hover:bg-slate-800/50 
+                  transition-colors capitalize"
+                  >
+                    {tab}
+                  </TabsTrigger>
+                )
+              )}
             </TabsList>
 
-            <TabsContent value="today" className="mt-6">
-              <TaskList
-                tasks={tasks}
-                status="today"
-                onComplete={handleComplete}
-                onMoveTask={handleMoveTask}
-                availableTags={availableTags}
-              />
-            </TabsContent>
-            <TabsContent value="tomorrow" className="mt-6">
-              <TaskList
-                tasks={tasks}
-                status="tomorrow"
-                onComplete={handleComplete}
-                onMoveTask={handleMoveTask}
-                availableTags={availableTags}
-              />
-            </TabsContent>
-            <TabsContent value="next" className="mt-6">
-              <TaskList
-                tasks={tasks}
-                status="next"
-                onComplete={handleComplete}
-                onMoveTask={handleMoveTask}
-                availableTags={availableTags}
-              />
-            </TabsContent>
-            <TabsContent value="waiting" className="mt-6">
-              <TaskList
-                tasks={tasks}
-                status="waiting"
-                onComplete={handleComplete}
-                onMoveTask={handleMoveTask}
-                availableTags={availableTags}
-              />
-            </TabsContent>
-            <TabsContent value="someday" className="mt-6">
-              <TaskList
-                tasks={tasks}
-                status="someday"
-                onComplete={handleComplete}
-                onMoveTask={handleMoveTask}
-                availableTags={availableTags}
-              />
-            </TabsContent>
+            <div
+              className="bg-slate-900/50 backdrop-blur-xl rounded-2xl p-6 sm:p-8 
+              border border-slate-800/50 shadow-xl"
+            >
+              {["today", "tomorrow", "next", "waiting", "someday"].map(
+                (tab) => (
+                  <TabsContent key={tab} value={tab}>
+                    <TaskList
+                      tasks={tasks}
+                      status={tab as TaskStatus}
+                      onComplete={handleComplete}
+                      onMoveTask={handleMoveTask}
+                      onDeleteTask={handleDeleteTask}
+                      availableTags={availableTags}
+                    />
+                  </TabsContent>
+                )
+              )}
+            </div>
           </Tabs>
         </DragDropContext>
       </div>

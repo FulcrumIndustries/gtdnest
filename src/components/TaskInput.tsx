@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Plus } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { cn } from "@/lib/utils";
 
 interface TaskInputProps {
   onAddTask: (task: string, tags?: string[]) => void;
@@ -10,7 +11,11 @@ interface TaskInputProps {
   onAddTag: (tag: string) => void;
 }
 
-export const TaskInput = ({ onAddTask, availableTags, onAddTag }: TaskInputProps) => {
+export const TaskInput = ({
+  onAddTask,
+  availableTags,
+  onAddTag,
+}: TaskInputProps) => {
   const [task, setTask] = useState("");
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [newTag, setNewTag] = useState("");
@@ -57,12 +62,14 @@ export const TaskInput = ({ onAddTask, availableTags, onAddTag }: TaskInputProps
             value={task}
             onChange={(e) => setTask(e.target.value)}
             placeholder="Add a new task..."
-            className="flex-1 h-12 text-base transition-all duration-200 ease-in-out focus-visible:ring-2 focus-visible:ring-primary"
+            className="flex-1 h-12 text-base transition-all duration-200 ease-in-out 
+            focus-visible:ring-2 focus-visible:ring-[#508D69] border-[#508D69]/20"
           />
           <Button
             type="submit"
             size="icon"
-            className="h-12 w-12 rounded-full transition-all duration-200 hover:scale-105"
+            className="h-12 w-12 rounded-full transition-all duration-200 hover:scale-105
+            bg-[#508D69] hover:bg-[#508D69]/90"
           >
             <Plus className="h-5 w-5" />
           </Button>
@@ -75,7 +82,12 @@ export const TaskInput = ({ onAddTask, availableTags, onAddTag }: TaskInputProps
               variant={selectedTags.includes(tag) ? "default" : "outline"}
               size="sm"
               onClick={() => handleTagSelect(tag)}
-              className="rounded-full"
+              className={cn(
+                "rounded-full",
+                selectedTags.includes(tag)
+                  ? "bg-[#9ADE7B] hover:bg-[#9ADE7B]/90 text-[#508D69] border-none"
+                  : "border-[#508D69] text-[#508D69] hover:bg-[#508D69] hover:text-white"
+              )}
             >
               {tag}
             </Button>
@@ -87,9 +99,13 @@ export const TaskInput = ({ onAddTask, availableTags, onAddTag }: TaskInputProps
           value={newTag}
           onChange={(e) => setNewTag(e.target.value)}
           placeholder="Add a new tag..."
-          className="flex-1"
+          className="flex-1 border-[#508D69]/20 focus-visible:ring-[#508D69]"
         />
-        <Button type="submit" size="sm">
+        <Button
+          type="submit"
+          size="sm"
+          className="bg-[#508D69] hover:bg-[#508D69]/90"
+        >
           Add Tag
         </Button>
       </form>

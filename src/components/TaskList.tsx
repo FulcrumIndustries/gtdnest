@@ -1,4 +1,4 @@
-import { Check, Clock, ArrowRight, MoveVertical } from "lucide-react";
+import { Check, Clock, ArrowRight, MoveVertical, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Droppable, Draggable } from "react-beautiful-dnd";
 import {
@@ -24,6 +24,7 @@ interface TaskListProps {
   status: TaskStatus;
   onComplete: (id: string) => void;
   onMoveTask: (taskId: string, newStatus: TaskStatus) => void;
+  onDeleteTask: (id: string) => void;
   availableTags: string[];
 }
 
@@ -46,7 +47,14 @@ const STATUS_LABELS: Record<TaskStatus, string> = {
   someday: "Someday",
 };
 
-export const TaskList = ({ tasks, status, onComplete, onMoveTask, availableTags }: TaskListProps) => {
+export const TaskList = ({
+  tasks,
+  status,
+  onComplete,
+  onMoveTask,
+  onDeleteTask,
+  availableTags,
+}: TaskListProps) => {
   const filteredTasks = tasks.filter((task) => task.status === status);
 
   return (
@@ -65,38 +73,50 @@ export const TaskList = ({ tasks, status, onComplete, onMoveTask, availableTags 
                   {...provided.draggableProps}
                   {...provided.dragHandleProps}
                   className={cn(
-                    "group flex items-center gap-3 p-4 rounded-lg bg-card hover:bg-accent/50 transition-all duration-200",
+                    "group flex items-center gap-3 p-4 rounded-lg bg-[#2D3748] border border-[#4B5563] hover:bg-[#374151] transition-all duration-200",
                     task.completed && "opacity-50"
                   )}
                 >
                   <button
                     onClick={() => onComplete(task.id)}
                     className={cn(
-                      "h-5 w-5 rounded border border-input flex items-center justify-center transition-colors",
-                      task.completed && "bg-primary border-primary",
-                      "hover:border-primary"
+                      "h-5 w-5 rounded border border-[#93C5FD] flex items-center justify-center transition-colors",
+                      task.completed && "bg-[#60A5FA] border-[#60A5FA]",
+                      "hover:border-[#60A5FA]"
                     )}
                   >
                     {task.completed && (
-                      <Check className="h-3 w-3 text-primary-foreground" />
+                      <Check className="h-3 w-3 text-[#1F2937]" />
                     )}
                   </button>
-                  <span className={cn("flex-1", task.completed && "line-through")}>
+                  <span
+                    className={cn(
+                      "flex-1 text-[#E5E7EB]",
+                      task.completed && "line-through text-[#9CA3AF]"
+                    )}
+                  >
                     {task.title}
                   </span>
-                  {getStatusIcon(status)}
                   {task.tags && (
                     <div className="flex gap-2">
                       {task.tags.map((tag) => (
                         <span
                           key={tag}
-                          className="px-2 py-1 text-xs rounded-full bg-secondary text-secondary-foreground"
+                          className="px-2 py-1 text-xs rounded-full bg-[#3B82F6]/20 text-[#93C5FD]"
                         >
                           {tag}
                         </span>
                       ))}
                     </div>
                   )}
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => onDeleteTask(task.id)}
+                    className="opacity-0 group-hover:opacity-100 hover:bg-red-500/10 hover:text-red-400 transition-all text-[#9CA3AF]"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button variant="ghost" size="icon">
