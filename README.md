@@ -103,8 +103,8 @@ npm run dev
 
 ## Contributors 👥
 
-- [Your Name](https://github.com/yourusername)
+- [Fulcrum Industries](https://github.com/FulcrumIndustries)
 
 ## License 📄
 
-MIT License © 2024 [Your Name]
+MIT License © 2024 [FulcrumIndustries]
