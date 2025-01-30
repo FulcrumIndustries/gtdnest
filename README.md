@@ -2,7 +2,7 @@
 
 **Organize Your Tasks, Get Things Done**
 
-![App Screenshot](/screenshot.png)
+![App Screenshot](/public/screenshot.png)
 
 ## Features ✨
 
