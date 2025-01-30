@@ -19,4 +19,10 @@ export default defineConfig(({ mode }) => ({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  optimizeDeps: {
+    include: [
+      "react-beautiful-dnd",
+      "react-beautiful-dnd/dist/react-beautiful-dnd.esm"
+    ]
+  }
 }));

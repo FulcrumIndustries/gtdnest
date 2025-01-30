@@ -1,21 +1,23 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Plus } from "lucide-react";
+import { Plus, Tag, X, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 
-interface TaskInputProps {
-  onAddTask: (task: string, tags?: string[]) => void;
+type TaskInputProps = {
+  onAddTask: (title: string, tags: string[]) => void;
   availableTags: string[];
   onAddTag: (tag: string) => void;
-}
+  onDeleteTag: (tag: string) => void;
+};
 
-export const TaskInput = ({
+export function TaskInput({
   onAddTask,
   availableTags,
   onAddTag,
-}: TaskInputProps) => {
+  onDeleteTag,
+}: TaskInputProps) {
   const [task, setTask] = useState("");
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [newTag, setNewTag] = useState("");
@@ -54,6 +56,10 @@ export const TaskInput = ({
     }
   };
 
+  const removeTag = (tagToRemove: string) => {
+    setSelectedTags((current) => current.filter((tag) => tag !== tagToRemove));
+  };
+
   return (
     <div className="space-y-4 w-full max-w-2xl mx-auto">
       <form onSubmit={handleSubmit} className="space-y-4">
@@ -62,8 +68,8 @@ export const TaskInput = ({
             value={task}
             onChange={(e) => setTask(e.target.value)}
             placeholder="Add a new task..."
-            className="flex-1 h-12 text-base transition-all duration-200 ease-in-out 
-            focus-visible:ring-2 focus-visible:ring-[#508D69] border-[#508D69]/20"
+            className="flex-1 h-12 text-base text-slate-200 transition-all duration-200 ease-in-out 
+            focus-visible:ring-2 focus-visible:ring-slate-600 border-slate-600/20 bg-slate-800/20"
           />
           <Button
             type="submit"
@@ -74,32 +80,48 @@ export const TaskInput = ({
             <Plus className="h-5 w-5" />
           </Button>
         </div>
-        <div className="flex gap-2 flex-wrap">
-          {availableTags.map((tag) => (
-            <Button
-              key={tag}
-              type="button"
-              variant={selectedTags.includes(tag) ? "default" : "outline"}
-              size="sm"
-              onClick={() => handleTagSelect(tag)}
-              className={cn(
-                "rounded-full",
-                selectedTags.includes(tag)
-                  ? "bg-[#9ADE7B] hover:bg-[#9ADE7B]/90 text-[#508D69] border-none"
-                  : "border-[#508D69] text-[#508D69] hover:bg-[#508D69] hover:text-white"
-              )}
-            >
-              {tag}
-            </Button>
-          ))}
-        </div>
       </form>
+
+      <div className="flex gap-2 flex-wrap">
+        {availableTags.map((tag) => (
+          <button
+            key={tag}
+            type="button"
+            onClick={() => handleTagSelect(tag)}
+            className={cn(
+              "px-3 py-1.5 rounded-full text-sm inline-flex items-center gap-2 group h-7",
+              selectedTags.includes(tag)
+                ? "bg-blue-500/20 text-blue-300 border border-blue-500/30"
+                : "bg-slate-700/50 text-slate-400 border border-slate-600/50 hover:bg-slate-700"
+            )}
+          >
+            <div className="inline-flex items-center gap-1.5 shrink-0">
+              <Tag className="h-3 w-3 shrink-0" />
+              <span className="truncate">{tag}</span>
+            </div>
+            <div className="w-px h-3.5 bg-slate-600/50 shrink-0" />
+            <button
+              type="button"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                onDeleteTag(tag);
+              }}
+              className="hover:text-red-400 transition-colors shrink-0 p-0.5"
+              aria-label={`Delete ${tag} tag`}
+            >
+              <Trash2 className="h-3 w-3" />
+            </button>
+          </button>
+        ))}
+      </div>
+
       <form onSubmit={handleAddTag} className="flex gap-2">
         <Input
           value={newTag}
           onChange={(e) => setNewTag(e.target.value)}
           placeholder="Add a new tag..."
-          className="flex-1 border-[#508D69]/20 focus-visible:ring-[#508D69]"
+          className="flex-1 border-slate-600/20 text-slate-200 focus-visible:ring-slate-600 bg-slate-800/20"
         />
         <Button
           type="submit"
@@ -111,4 +133,4 @@ export const TaskInput = ({
       </form>
     </div>
   );
-};
+}

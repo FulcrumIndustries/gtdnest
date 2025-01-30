@@ -1,11 +1,15 @@
 import { useState, useEffect } from "react";
 import { TaskInput } from "@/components/TaskInput";
 import { TaskList, Task, TaskStatus } from "@/components/TaskList";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { DragDropContext, DropResult } from "react-beautiful-dnd";
 import { Button } from "@/components/ui/button";
-import { Download, Upload } from "lucide-react";
+import { Download, Upload, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { cn } from "@/lib/utils";
+import { DndProvider } from "@/components/dnd/Context";
+import { DragEndEvent } from "@dnd-kit/core";
+import { arrayMove } from "@dnd-kit/sortable";
+import { Column } from "@/components/Column";
+import { AddColumnButton } from "@/components/AddColumnButton";
 
 const INITIAL_TASKS: Task[] = [
   {
@@ -30,53 +34,67 @@ const INITIAL_TASKS: Task[] = [
   },
 ];
 
-const INITIAL_TAGS = [
-  "work",
-  "personal",
-  "important",
-  "urgent",
-  "health",
-  "finance",
-];
+const INITIAL_TAGS = ["work", "personal", "important", "urgent"];
 
 interface AppState {
-  tasks: Task[];
-  tags: string[];
+  columns: ColumnType[];
 }
 
+type ColumnType = {
+  id: string;
+  title: string;
+  tasks: Task[];
+};
+
+const INITIAL_COLUMNS: ColumnType[] = [
+  {
+    id: "today",
+    title: "Today",
+    tasks: [],
+  },
+  {
+    id: "tomorrow",
+    title: "Tomorrow",
+    tasks: [],
+  },
+];
+
 const Index = () => {
-  const [tasks, setTasks] = useState<Task[]>(INITIAL_TASKS);
+  const [columns, setColumns] = useState<ColumnType[]>(INITIAL_COLUMNS);
+  const [tasks, setTasks] = useState<Task[]>([]);
   const [availableTags, setAvailableTags] = useState<string[]>(INITIAL_TAGS);
   const { toast } = useToast();
+  const [hoveredColumn, setHoveredColumn] = useState<string | null>(null);
+  const [isImporting, setIsImporting] = useState(false);
 
   // Load state from localStorage on component mount
   useEffect(() => {
     const savedState = localStorage.getItem("gtdNestState");
     if (savedState) {
-      const { tasks: savedTasks, tags: savedTags } = JSON.parse(savedState);
-      setTasks(savedTasks);
-      setAvailableTags(savedTags);
+      const { columns: savedColumns } = JSON.parse(savedState);
+      setColumns(savedColumns);
     }
   }, []);
 
   // Save state to localStorage whenever tasks or tags change
   useEffect(() => {
-    const state: AppState = {
-      tasks,
-      tags: availableTags,
-    };
+    const state: AppState = { columns };
     localStorage.setItem("gtdNestState", JSON.stringify(state));
-  }, [tasks, availableTags]);
+  }, [columns]);
 
   const handleAddTask = (title: string, tags?: string[]) => {
     const newTask: Task = {
-      id: Date.now().toString(),
+      id: `task-${Date.now()}`,
       title,
-      status: "today",
+      status: columns[0].id as TaskStatus,
       completed: false,
-      tags,
+      tags: tags || [],
     };
-    setTasks([...tasks, newTask]);
+    setColumns((cols) =>
+      cols.map((col) =>
+        col.id === "today" ? { ...col, tasks: [...col.tasks, newTask] } : col
+      )
+    );
   };
 
   const handleComplete = (id: string) => {
@@ -99,33 +117,72 @@ const Index = () => {
     setAvailableTags([...availableTags, newTag]);
   };
 
-  const handleDragEnd = (result: DropResult) => {
-    const { destination, source, draggableId } = result;
+  const handleDeleteTag = (tagToDelete: string) => {
+    // Remove the tag from available tags
+    setAvailableTags(availableTags.filter((tag) => tag !== tagToDelete));
 
-    if (!destination) return;
-
-    if (
-      destination.droppableId === source.droppableId &&
-      destination.index === source.index
-    ) {
-      return;
-    }
-
-    const updatedTasks = tasks.map((task) => {
-      if (task.id === draggableId) {
-        return {
+    // Remove the tag from all tasks that have it
+    setColumns(
+      columns.map((col) => ({
+        ...col,
+        tasks: col.tasks.map((task) => ({
           ...task,
-          status: destination.droppableId as TaskStatus,
-        };
-      }
-      return task;
-    });
+          tags: task.tags?.filter((tag) => tag !== tagToDelete) || [],
+        })),
+      }))
+    );
+  };
 
-    setTasks(updatedTasks);
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+
+    const activeColumn = columns.find((col) =>
+      col.tasks.some((task) => task.id === active.id)
+    );
+    const overColumn = columns.find(
+      (col) =>
+        col.id === over.id || col.tasks.some((task) => task.id === over.id)
+    );
+
+    if (!activeColumn || !overColumn) return;
+
+    const activeTask = activeColumn.tasks.find((task) => task.id === active.id);
+    if (!activeTask) return;
+
+    if (activeColumn.id === overColumn.id && active.id === over.id) return;
+
+    setColumns((columns) =>
+      columns.map((col) => {
+        // Remove from source column
+        if (col.id === activeColumn.id) {
+          return {
+            ...col,
+            tasks: col.tasks.filter((task) => task.id !== active.id),
+          };
+        }
+        // Add to target column
+        if (col.id === overColumn.id) {
+          return {
+            ...col,
+            tasks: [
+              ...col.tasks,
+              { ...activeTask, status: col.id as TaskStatus },
+            ],
+          };
+        }
+        return col;
+      })
+    );
   };
 
   const handleDeleteTask = (id: string) => {
-    setTasks(tasks.filter((task) => task.id !== id));
+    setColumns((cols) =>
+      cols.map((col) => ({
+        ...col,
+        tasks: col.tasks.filter((task) => task.id !== id),
+      }))
+    );
     toast({
       title: "Task deleted",
       description: "Your task has been deleted successfully.",
@@ -133,177 +190,241 @@ const Index = () => {
   };
 
   const exportState = () => {
-    const state: AppState = {
-      tasks,
-      tags: availableTags,
-    };
-    const blob = new Blob([JSON.stringify(state, null, 2)], {
-      type: "application/json",
-    });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "gtd-nest-backup.json";
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-    toast({
-      title: "Export successful",
-      description: "Your data has been exported successfully.",
-    });
+    try {
+      const state: AppState = { columns };
+      const blob = new Blob([JSON.stringify(state, null, 2)], {
+        type: "application/json",
+      });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `gtd-nest-backup-${
+        new Date().toISOString().split("T")[0]
+      }.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      toast({
+        title: "Export successful",
+        description: "Your data has been exported successfully.",
+      });
+    } catch (error) {
+      toast({
+        title: "Export failed",
+        description: "There was an error exporting your data.",
+        variant: "destructive",
+      });
+    }
   };
 
-  const importState = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const importState = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        try {
-          const state = JSON.parse(e.target?.result as string) as AppState;
-          setTasks(state.tasks);
-          setAvailableTags(state.tags);
-          toast({
-            title: "Import successful",
-            description: "Your data has been imported successfully.",
-          });
-        } catch (error) {
-          toast({
-            title: "Import failed",
-            description: "There was an error importing your data.",
-            variant: "destructive",
-          });
-        }
-      };
-      reader.readAsText(file);
+      setIsImporting(true);
+      try {
+        const text = await file.text();
+        const { columns: importedColumns } = JSON.parse(text) as AppState;
+        setColumns(importedColumns);
+        toast({
+          title: "Import successful",
+          description: "Your data has been imported successfully.",
+        });
+      } catch (error) {
+        toast({
+          title: "Import failed",
+          description: "There was an error importing your data.",
+          variant: "destructive",
+        });
+      } finally {
+        setIsImporting(false);
+        // Reset the input
+        event.target.value = "";
+      }
+    }
+  };
+
+  const addColumn = () => {
+    const newColumn: ColumnType = {
+      id: `column-${Date.now()}`,
+      title: "New Column",
+      tasks: [],
+    };
+    setColumns([...columns, newColumn]);
+  };
+
+  const handleRenameColumn = (columnId: string, newTitle: string) => {
+    setColumns(
+      columns.map((col) =>
+        col.id === columnId ? { ...col, title: newTitle } : col
+      )
+    );
+  };
+
+  const handleDeleteColumn = (columnId: string) => {
+    setColumns(columns.filter((col) => col.id !== columnId));
+  };
+
+  const handleEditTask = (taskId: string, updates: Partial<Task>) => {
+    setColumns(
+      columns.map((col) => ({
+        ...col,
+        tasks: col.tasks.map((task) =>
+          task.id === taskId ? { ...task, ...updates } : task
+        ),
+      }))
+    );
+  };
+
+  // Add resetState function
+  const resetState = () => {
+    if (
+      window.confirm(
+        "Are you sure you want to reset all data? This cannot be undone."
+      )
+    ) {
+      setColumns(INITIAL_COLUMNS);
+      setAvailableTags(INITIAL_TAGS);
+      localStorage.removeItem("gtdNestState");
+      toast({
+        title: "Reset successful",
+        description: "All data has been reset to initial values.",
+      });
     }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#0F172A] to-[#1E293B] relative overflow-hidden">
-      {/* Subtle background pattern */}
-      <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-[0.02]" />
-
-      {/* Floating orbs with more subtle colors */}
-      <div className="absolute inset-0 overflow-hidden -z-10">
-        <div
-          className="absolute w-[800px] h-[800px] rounded-full bg-[#3B82F6]/5 blur-3xl 
-          animate-float top-0 -left-96"
-        />
-        <div
-          className="absolute w-[600px] h-[600px] rounded-full bg-[#2563EB]/5 blur-3xl 
-          animate-float-delayed -bottom-64 -right-32"
-        />
-      </div>
-
-      <div className="max-w-5xl mx-auto p-6 sm:p-8 space-y-8">
-        {/* Header section with improved typography */}
-        <header className="space-y-4 text-center py-12">
-          <h1
-            className="text-4xl sm:text-6xl font-bold tracking-tight text-white 
-            animate-fade-in font-display"
-          >
-            GTD Nest
-            <span className="text-[#3B82F6]">.</span>
+    <div className="min-h-screen bg-slate-900 p-8">
+      <div className="max-w-7xl mx-auto space-y-8">
+        {/* App Header */}
+        <header className="space-y-4 text-center">
+          <h1 className="text-4xl sm:text-6xl font-bold tracking-tight text-white">
+            GTD Nest<span className="text-[#3B82F6]">.</span>
           </h1>
-          <p className="text-lg sm:text-xl text-slate-400 animate-fade-in-up font-light">
+          <p className="text-lg text-slate-400">
             Organize your tasks, get things done ✨
           </p>
 
-          {/* Action buttons with improved styling */}
-          <div className="flex flex-wrap justify-center gap-4 mt-8">
+          {/* Import/Export buttons */}
+          <div className="flex justify-center gap-4">
+            {/* Export Button */}
             <Button
               onClick={exportState}
               variant="outline"
-              size="lg"
-              className="group relative bg-slate-900/50 border-slate-700 text-slate-300 
-              hover:bg-[#3B82F6]/10 hover:border-[#3B82F6] hover:text-[#3B82F6] 
-              transition-all duration-300"
+              size="sm"
+              className="min-w-[120px] bg-slate-800/50 border-slate-700 text-slate-300 
+                hover:bg-slate-800 hover:border-blue-500/50 transition-all group"
             >
-              <Download
-                className="w-5 h-5 mr-2 group-hover:scale-110 group-hover:translate-y-0.5 
-                transition-all duration-300"
-              />
-              Export Data
+              <Download className="w-4 h-4 mr-2 group-hover:text-blue-400 transition-colors" />
+              <span className="group-hover:text-blue-400 transition-colors">
+                Export
+              </span>
             </Button>
+
+            {/* Import Button */}
+            <div className="relative">
+              <Button
+                variant="outline"
+                size="sm"
+                className="min-w-[120px] bg-slate-800/50 border-slate-700 text-slate-300 
+                  hover:bg-slate-800 hover:border-blue-500/50 transition-all group cursor-pointer"
+              >
+                <input
+                  type="file"
+                  accept=".json"
+                  onChange={importState}
+                  className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+                  style={{ minWidth: "auto" }}
+                />
+                <Upload className="w-4 h-4 mr-2 group-hover:text-blue-400 transition-colors" />
+                <span className="group-hover:text-blue-400 transition-colors">
+                  Import
+                </span>
+              </Button>
+              <div className="absolute -bottom-6 left-0 right-0 text-center">
+                <p className="text-xs text-slate-500">
+                  {/* Show file name if selected */}
+                </p>
+              </div>
+            </div>
+
+            {/* Reset Button */}
             <Button
+              onClick={resetState}
               variant="outline"
-              size="lg"
-              className="group relative bg-slate-900/50 border-slate-700 text-slate-300 
-              hover:bg-[#3B82F6]/10 hover:border-[#3B82F6] hover:text-[#3B82F6] 
-              transition-all duration-300"
+              size="sm"
+              className="min-w-[120px] bg-slate-800/50 border-red-900/50 text-red-300 
+                hover:bg-red-950/50 hover:border-red-500/50 transition-all group"
             >
-              <input
-                type="file"
-                accept=".json"
-                onChange={importState}
-                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-              />
-              <Upload
-                className="w-5 h-5 mr-2 group-hover:scale-110 group-hover:-translate-y-0.5 
-                transition-all duration-300"
-              />
-              Import Data
+              <Trash2 className="w-4 h-4 mr-2 group-hover:text-red-400 transition-colors" />
+              <span className="group-hover:text-red-400 transition-colors">
+                Reset
+              </span>
             </Button>
           </div>
         </header>
 
-        {/* Task input section with glassmorphism */}
-        <div
-          className="bg-slate-900/50 backdrop-blur-xl rounded-2xl p-6 sm:p-8 
-          border border-slate-800/50 shadow-xl"
-        >
+        {/* Task Input */}
+        <div className="bg-slate-800/50 rounded-lg p-6 max-w-2xl mx-auto">
           <TaskInput
             onAddTask={handleAddTask}
             availableTags={availableTags}
             onAddTag={handleAddTag}
+            onDeleteTag={handleDeleteTag}
           />
         </div>
 
-        {/* Tasks section */}
-        <DragDropContext onDragEnd={handleDragEnd}>
-          <Tabs defaultValue="today" className="w-full">
-            <TabsList
-              className="flex w-full p-1 bg-slate-900/50 backdrop-blur-xl 
-              rounded-xl border border-slate-800/50 mb-6"
-            >
-              {["today", "tomorrow", "next", "waiting", "someday"].map(
-                (tab) => (
-                  <TabsTrigger
-                    key={tab}
-                    value={tab}
-                    className="flex-1 text-base sm:text-lg rounded-lg py-3 
-                  data-[state=active]:bg-[#3B82F6] data-[state=active]:text-white 
-                  text-slate-400 hover:text-slate-200 hover:bg-slate-800/50 
-                  transition-colors capitalize"
-                  >
-                    {tab}
-                  </TabsTrigger>
-                )
-              )}
-            </TabsList>
+        {/* Board Header */}
+        <div className="flex items-center justify-between">
+          <h2 className="text-2xl font-bold text-white">Task Board</h2>
+          <AddColumnButton onClick={addColumn} />
+        </div>
 
-            <div
-              className="bg-slate-900/50 backdrop-blur-xl rounded-2xl p-6 sm:p-8 
-              border border-slate-800/50 shadow-xl"
-            >
-              {["today", "tomorrow", "next", "waiting", "someday"].map(
-                (tab) => (
-                  <TabsContent key={tab} value={tab}>
-                    <TaskList
-                      tasks={tasks}
-                      status={tab as TaskStatus}
-                      onComplete={handleComplete}
-                      onMoveTask={handleMoveTask}
-                      onDeleteTask={handleDeleteTask}
-                      availableTags={availableTags}
-                    />
-                  </TabsContent>
-                )
-              )}
-            </div>
-          </Tabs>
-        </DragDropContext>
+        {/* Columns */}
+        <DndProvider onDragEnd={handleDragEnd}>
+          <div className="flex gap-6 overflow-x-auto pb-8">
+            {columns.map((column) => (
+              <Column
+                key={column.id}
+                id={column.id}
+                title={column.title}
+                tasks={column.tasks}
+                onAddTask={(title) => {
+                  const newTask: Task = {
+                    id: `task-${Date.now()}`,
+                    title,
+                    status: column.id as TaskStatus,
+                    completed: false,
+                    tags: [],
+                  };
+                  setColumns((cols) =>
+                    cols.map((col) =>
+                      col.id === column.id
+                        ? { ...col, tasks: [...col.tasks, newTask] }
+                        : col
+                    )
+                  );
+                }}
+                onDeleteTask={(taskId) => {
+                  setColumns((cols) =>
+                    cols.map((col) => ({
+                      ...col,
+                      tasks: col.tasks.filter((task) => task.id !== taskId),
+                    }))
+                  );
+                }}
+                onDeleteColumn={() => handleDeleteColumn(column.id)}
+                onRenameColumn={(newTitle) =>
+                  handleRenameColumn(column.id, newTitle)
+                }
+                onEditTask={(taskId, updates) =>
+                  handleEditTask(taskId, updates as Partial<Task>)
+                }
+                availableTags={availableTags}
+              />
+            ))}
+          </div>
+        </DndProvider>
       </div>
     </div>
   );

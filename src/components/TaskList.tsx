@@ -1,13 +1,23 @@
 import { Check, Clock, ArrowRight, MoveVertical, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Droppable, Draggable } from "react-beautiful-dnd";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragOverlay,
+} from "@dnd-kit/core";
+import {
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+  useSortable,
+} from "@dnd-kit/sortable";
 import { Button } from "@/components/ui/button";
+
+import { CSS } from "@dnd-kit/utilities";
 
 export type TaskStatus = "today" | "tomorrow" | "next" | "waiting" | "someday";
 
@@ -23,9 +33,7 @@ interface TaskListProps {
   tasks: Task[];
   status: TaskStatus;
   onComplete: (id: string) => void;
-  onMoveTask: (taskId: string, newStatus: TaskStatus) => void;
   onDeleteTask: (id: string) => void;
-  availableTags: string[];
 }
 
 const getStatusIcon = (status: TaskStatus) => {
@@ -51,97 +59,101 @@ export const TaskList = ({
   tasks,
   status,
   onComplete,
-  onMoveTask,
   onDeleteTask,
-  availableTags,
 }: TaskListProps) => {
-  const filteredTasks = tasks.filter((task) => task.status === status);
+  return (
+    <SortableContext items={tasks} strategy={verticalListSortingStrategy}>
+      <div className="space-y-2">
+        {tasks.map((task) => (
+          <SortableTask
+            key={task.id}
+            task={task}
+            onComplete={onComplete}
+            onDeleteTask={onDeleteTask}
+          />
+        ))}
+      </div>
+    </SortableContext>
+  );
+};
+
+const SortableTask = ({
+  task,
+  onComplete,
+  onDeleteTask,
+}: {
+  task: Task;
+  onComplete: (id: string) => void;
+  onDeleteTask: (id: string) => void;
+}) => {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: task.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    zIndex: isDragging ? 50 : "auto",
+  };
 
   return (
-    <Droppable droppableId={status}>
-      {(provided) => (
-        <div
-          ref={provided.innerRef}
-          {...provided.droppableProps}
-          className="space-y-2"
+    <div
+      ref={setNodeRef}
+      style={style}
+      className={cn(
+        "group flex flex-col gap-2 p-3 rounded-lg bg-slate-800/20 border border-slate-800/30",
+        "hover:bg-slate-800/30 transition-all duration-200 mb-2 last:mb-0",
+        task.completed && "opacity-50",
+        isDragging && "shadow-xl bg-slate-800/50 border-[#3B82F6]/30"
+      )}
+      {...attributes}
+    >
+      <div className="flex items-center gap-3" {...listeners}>
+        <button
+          onClick={() => onComplete(task.id)}
+          className={cn(
+            "shrink-0 h-5 w-5 rounded border border-slate-600 flex items-center justify-center",
+            "transition-colors hover:border-[#3B82F6]",
+            task.completed && "bg-[#3B82F6] border-[#3B82F6]"
+          )}
         >
-          {filteredTasks.map((task, index) => (
-            <Draggable key={task.id} draggableId={task.id} index={index}>
-              {(provided) => (
-                <div
-                  ref={provided.innerRef}
-                  {...provided.draggableProps}
-                  {...provided.dragHandleProps}
-                  className={cn(
-                    "group flex items-center gap-3 p-4 rounded-lg bg-[#2D3748] border border-[#4B5563] hover:bg-[#374151] transition-all duration-200",
-                    task.completed && "opacity-50"
-                  )}
-                >
-                  <button
-                    onClick={() => onComplete(task.id)}
-                    className={cn(
-                      "h-5 w-5 rounded border border-[#93C5FD] flex items-center justify-center transition-colors",
-                      task.completed && "bg-[#60A5FA] border-[#60A5FA]",
-                      "hover:border-[#60A5FA]"
-                    )}
-                  >
-                    {task.completed && (
-                      <Check className="h-3 w-3 text-[#1F2937]" />
-                    )}
-                  </button>
-                  <span
-                    className={cn(
-                      "flex-1 text-[#E5E7EB]",
-                      task.completed && "line-through text-[#9CA3AF]"
-                    )}
-                  >
-                    {task.title}
-                  </span>
-                  {task.tags && (
-                    <div className="flex gap-2">
-                      {task.tags.map((tag) => (
-                        <span
-                          key={tag}
-                          className="px-2 py-1 text-xs rounded-full bg-[#3B82F6]/20 text-[#93C5FD]"
-                        >
-                          {tag}
-                        </span>
-                      ))}
-                    </div>
-                  )}
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => onDeleteTask(task.id)}
-                    className="opacity-0 group-hover:opacity-100 hover:bg-red-500/10 hover:text-red-400 transition-all text-[#9CA3AF]"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="icon">
-                        <MoveVertical className="h-4 w-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent>
-                      {Object.entries(STATUS_LABELS).map(([key, label]) => (
-                        <DropdownMenuItem
-                          key={key}
-                          onClick={() => onMoveTask(task.id, key as TaskStatus)}
-                          disabled={key === status}
-                        >
-                          Move to {label}
-                        </DropdownMenuItem>
-                      ))}
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </div>
-              )}
-            </Draggable>
+          {task.completed && <Check className="h-3 w-3 text-white" />}
+        </button>
+        <span
+          className={cn(
+            "flex-1 text-sm text-slate-200",
+            task.completed && "line-through text-slate-400"
+          )}
+        >
+          {task.title}
+        </span>
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => onDeleteTask(task.id)}
+          className="opacity-30 group-hover:opacity-100 hover:scale-125 hover:bg-red-500/20 hover:text-red-400 
+          transition-all text-slate-400 shrink-0"
+        >
+          <Trash2 className="h-4 w-4" />
+        </Button>
+      </div>
+      {task.tags && task.tags.length > 0 && (
+        <div className="flex flex-wrap gap-1">
+          {task.tags.map((tag) => (
+            <span
+              key={tag}
+              className="px-2 py-1 text-xs rounded-full bg-[#3B82F6]/10 text-[#93C5FD]"
+            >
+              {tag}
+            </span>
           ))}
-          {provided.placeholder}
         </div>
       )}
-    </Droppable>
+    </div>
   );
 };
