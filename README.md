@@ -1,69 +1,110 @@
-# Welcome to your Lovable project
+# GTD Nest 🪺
 
-## Project info
+**Organize Your Tasks, Get Things Done**
 
-**URL**: https://lovable.dev/projects/4f8141dc-0df2-45ea-9e4c-aecc55f453fe
+![App Screenshot](/screenshot.png)
 
-## How can I edit this code?
+## Features ✨
 
-There are several ways of editing your application.
+- **Drag & Drop Interface**  
+  Move tasks between columns with smooth animations
+- **Smart Task Management**  
+  ✏️ Edit task details & tags  
+  🏷️ Create custom tags & assign to tasks  
+  🗑️ Delete tasks/columns with undo safety
+- **Multi-Column Workspace**  
+  ➕ Add unlimited columns  
+  ✏️ Rename columns  
+  ↔️ Reorganize visually
+- **Data Management**  
+  📤 Export all data to JSON  
+  📥 Import previous backups  
+  🔄 One-click reset
+- **Modern UX**  
+  🌑 Dark mode by default  
+  📱 Mobile-responsive  
+  🎨 Clean minimalist design
 
-**Use Lovable**
+## Quick Start 🚀
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/4f8141dc-0df2-45ea-9e4c-aecc55f453fe) and start prompting.
+1. **Clone repository**
 
-Changes made via Lovable will be committed automatically to this repo.
-
-**Use your preferred IDE**
-
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
-
-```sh
-# Step 1: Clone the repository using the project's Git URL.
+```bash
 git clone <YOUR_GIT_URL>
+cd <PROJECT_DIRECTORY>
+```
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+2. **Install dependencies**
 
-# Step 3: Install the necessary dependencies.
-npm i
+```bash
+npm install
+```
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
+3. **Run development server**
+
+```bash
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+4. **Open in browser**  
+   `http://localhost:8080`
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+## Core Workflows 💼
 
-**Use GitHub Codespaces**
+### Adding Tasks
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+1. Type task in main input
+2. (Optional) Add tags with # prefix
+3. Press Enter or click + button
 
-## What technologies are used for this project?
+### Managing Columns
 
-This project is built with .
+```plaintext
+# Add Column ➕ - Click "Add Column" in top right
+# Edit Column - Click pencil icon in column header
+# Delete Column - Click trash icon in column header
+```
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+### Advanced Features
 
-## How can I deploy this project?
+```plaintext
+# Tag Management
+- Add new tags in task detail modal
+- Delete tags from global pool
 
-Simply open [Lovable](https://lovable.dev/projects/4f8141dc-0df2-45ea-9e4c-aecc55f453fe) and click on Share -> Publish.
+# Data Safety
+- Automatic local backup
+- Manual export/import
+- Full reset option
+```
 
-## I want to use a custom domain - is that possible?
+## Tech Stack ⚙️
 
-We don't support custom domains (yet). If you want to deploy your project under your own domain then we recommend using Netlify. Visit our docs for more details: [Custom domains](https://docs.lovable.dev/tips-tricks/custom-domain/)
+- **Frontend**  
+  <img src="https://img.shields.io/badge/React-20232A?logo=react&logoColor=61DAFB" alt="React">  
+  <img src="https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white" alt="TypeScript">
+
+- **State & Drag**  
+  <img src="https://img.shields.io/badge/dnd--kit-2B2D42?logo=data:image/svg+xml;base64,..." alt="dnd-kit">
+
+- **Styling**  
+  <img src="https://img.shields.io/badge/Tailwind_CSS-38B2AC?logo=tailwind-css&logoColor=white" alt="Tailwind CSS">
+
+- **Tooling**  
+  <img src="https://img.shields.io/badge/Vite-B73BFE?logo=vite&logoColor=FFD62E" alt="Vite">
+
+## Deployment 🚀
+
+1. **Through Lovable**  
+   Open [project page](https://lovable.dev/projects/4f8141dc-0df2-45ea-9e4c-aecc55f453fe) → Share → Publish
+
+2. **Self-hosted**  
+   [![Deploy to Netlify](https://www.netlify.com/img/deploy/button.svg)](https://app.netlify.com/start)
+
+## Contributors 👥
+
+- [Your Name](https://github.com/yourusername)
+
+## License 📄
+
+MIT License © 2024 [Your Name]
