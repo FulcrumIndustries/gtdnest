@@ -84,35 +84,39 @@ export function TaskInput({
 
       <div className="flex gap-2 flex-wrap">
         {availableTags.map((tag) => (
-          <button
-            key={tag}
-            type="button"
-            onClick={() => handleTagSelect(tag)}
-            className={cn(
-              "px-3 py-1.5 rounded-full text-sm inline-flex items-center gap-2 group h-7",
-              selectedTags.includes(tag)
-                ? "bg-blue-500/20 text-blue-300 border border-blue-500/30"
-                : "bg-slate-700/50 text-slate-400 border border-slate-600/50 hover:bg-slate-700"
-            )}
-          >
-            <div className="inline-flex items-center gap-1.5 shrink-0">
-              <Tag className="h-3 w-3 shrink-0" />
-              <span className="truncate">{tag}</span>
-            </div>
-            <div className="w-px h-3.5 bg-slate-600/50 shrink-0" />
+          <div key={tag} className="tag-enter">
             <button
               type="button"
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                onDeleteTag(tag);
-              }}
-              className="hover:text-red-400 transition-colors shrink-0 p-0.5"
-              aria-label={`Delete ${tag} tag`}
+              onClick={() => handleTagSelect(tag)}
+              className={`
+                px-2 py-1 rounded-full text-sm flex items-center gap-1
+                transition-all duration-150 ease-out
+                ${
+                  selectedTags.includes(tag)
+                    ? "bg-blue-500/20 text-blue-300 border border-blue-500/30"
+                    : "bg-slate-700/50 text-slate-400 border border-slate-600/50 hover:bg-slate-700"
+                }
+              `}
             >
-              <Trash2 className="h-3 w-3" />
+              <div className="inline-flex items-center gap-1.5 shrink-0">
+                <Tag className="h-3 w-3 shrink-0" />
+                <span className="truncate">{tag}</span>
+              </div>
+              <div className="w-px h-3.5 bg-slate-600/50 shrink-0" />
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  onDeleteTag(tag);
+                }}
+                className="hover:text-red-400 transition-colors shrink-0 p-0.5"
+                aria-label={`Delete ${tag} tag`}
+              >
+                <Trash2 className="h-3 w-3" />
+              </button>
             </button>
-          </button>
+          </div>
         ))}
       </div>
 

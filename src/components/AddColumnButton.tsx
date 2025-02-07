@@ -8,7 +8,7 @@ export function AddColumnButton({ onClick }: Props) {
   return (
     <button
       onClick={onClick}
-      className="flex items-center gap-2 px-4 py-2 bg-blue-600/30 hover:bg-blue-600/40 text-blue-400 rounded-lg transition-colors"
+      className="flex items-center gap-2 px-4 py-2 bg-blue-600/30 hover:bg-blue-600/40 text-blue-400 rounded-lg transition-all duration-200"
     >
       <Plus className="h-5 w-5" />
       Add Column

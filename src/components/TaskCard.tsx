@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { Pen, Trash2, Tag } from "lucide-react";
+import { Pen, Trash2, Tag, AlignLeft } from "lucide-react";
 import { Task } from "@/types";
 import { TaskDetailModal } from "./TaskDetailModal";
 
@@ -54,12 +54,18 @@ export function TaskCard({
           bg-slate-700/50 border border-slate-600
           hover:border-slate-500 hover:bg-slate-700/70
           ${isDragging ? "shadow-xl ring-2 ring-blue-500/50" : ""}
+          transition-all duration-200 ease-out
         `}
       >
         <div className="flex items-start justify-between gap-2">
-          <span className="text-white flex-1" title={task.title}>
-            {truncateText(task.title, 18)}
-          </span>
+          <div className="flex items-center gap-2 flex-1">
+            <span className="text-white flex-1" title={task.title}>
+              {truncateText(task.title, 18)}
+            </span>
+            {task.description && (
+              <AlignLeft className="h-3 w-3 text-slate-400" title="Has description" />
+            )}
+          </div>
           <div className="flex items-center gap-2 shrink-0">
             <button
               onClick={(e) => {

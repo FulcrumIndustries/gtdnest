@@ -44,17 +44,7 @@ export function Column({
             type="text"
             value={editedTitle}
             onChange={(e) => setEditedTitle(e.target.value)}
-            onBlur={() => {
-              setIsEditing(false);
-              onRenameColumn(editedTitle);
-            }}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') {
-                setIsEditing(false);
-                onRenameColumn(editedTitle);
-              }
-            }}
-            className="bg-slate-700/50 border border-slate-600 rounded px-2 py-1 text-white"
+            className="bg-slate-700/50 border border-slate-600 rounded px-2 py-1 text-white w-full"
             autoFocus
           />
         ) : (
@@ -95,16 +85,19 @@ export function Column({
       </div>
 
       <SortableContext items={tasks.map(t => t.id)} strategy={verticalListSortingStrategy}>
-        <div className="space-y-2">
+        <div className="space-y-2 min-h-[200px]">
           {tasks.map((task) => (
-            <TaskCard
-              key={task.id}
-              task={task}
-              onDelete={() => onDeleteTask(task.id)}
-              onEdit={(taskId, updates) => onEditTask(taskId, updates)}
-              availableTags={availableTags}
-            />
+            <div key={task.id} className="task-enter">
+              <TaskCard
+                task={task}
+                onDelete={() => onDeleteTask(task.id)}
+                onEdit={(taskId, updates) => onEditTask(taskId, updates)}
+                availableTags={availableTags}
+              />
+            </div>
           ))}
+          {/* Empty drop zone */}
+          <div className="h-8 rounded-lg border-2 border-dashed border-slate-700/50" />
         </div>
       </SortableContext>
     </div>

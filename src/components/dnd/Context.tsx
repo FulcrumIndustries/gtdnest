@@ -31,10 +31,13 @@ export const DndProvider = ({ children, onDragEnd }: {
       }}
     >
       {children}
-      <DragOverlay dropAnimation={{
-        duration: 200,
-        easing: 'cubic-bezier(0.18, 0.67, 0.6, 1.22)',
-      }}>
+      <DragOverlay 
+        dropAnimation={{
+          duration: 200,
+          easing: 'cubic-bezier(0.18, 0.67, 0.6, 1.22)',
+        }}
+        style={{ zIndex: 9998 }}
+      >
         {activeTask && (
           <div className="p-3 rounded-lg bg-slate-700/95 border-2 border-blue-500/50 shadow-xl
             backdrop-blur-sm w-72 transform-gpu rotate-3">

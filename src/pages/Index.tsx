@@ -297,82 +297,80 @@ const Index = () => {
     <div className="min-h-screen bg-slate-900 p-8">
       <div className="max-w-7xl mx-auto space-y-8">
         {/* App Header */}
-        <header className="space-y-4 text-center">
-          <h1 className="text-4xl sm:text-6xl font-bold tracking-tight text-white">
-            GTD Nest<span className="text-[#3B82F6]">.</span>
-          </h1>
-          <p className="text-lg text-slate-400">
-            Organize your tasks, get things done ✨
-          </p>
+        <header className="space-y-6">
+          {/* Title and Task Input */}
+          <div className="flex items-start justify-between gap-8">
+            <div className="flex-1">
+              <h1 className="text-4xl sm:text-6xl font-bold tracking-tight text-white">
+                GTD Nest<span className="text-[#3B82F6]">.</span>
+              </h1>
+              <p className="text-lg text-slate-400 mt-2">
+                Organize your tasks, get things done ✨
+              </p>
+              <div className="flex items-center gap-4 mt-4">
+                {/* Action Buttons */}
+                <div className="flex gap-2">
+                  <Button
+                    onClick={exportState}
+                    variant="outline"
+                    size="sm"
+                    className="bg-slate-800/50 border-slate-700 text-slate-300 
+                      hover:bg-slate-800 hover:border-blue-500/50 transition-all group"
+                  >
+                    <Download className="w-4 h-4 mr-2 group-hover:text-blue-400 transition-colors" />
+                    <span className="group-hover:text-blue-400 transition-colors">
+                      Export
+                    </span>
+                  </Button>
 
-          {/* Import/Export buttons */}
-          <div className="flex justify-center gap-4">
-            {/* Export Button */}
-            <Button
-              onClick={exportState}
-              variant="outline"
-              size="sm"
-              className="min-w-[120px] bg-slate-800/50 border-slate-700 text-slate-300 
-                hover:bg-slate-800 hover:border-blue-500/50 transition-all group"
-            >
-              <Download className="w-4 h-4 mr-2 group-hover:text-blue-400 transition-colors" />
-              <span className="group-hover:text-blue-400 transition-colors">
-                Export
-              </span>
-            </Button>
+                  <div className="relative">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="bg-slate-800/50 border-slate-700 text-slate-300 
+                        hover:bg-slate-800 hover:border-blue-500/50 transition-all group cursor-pointer"
+                    >
+                      <input
+                        type="file"
+                        accept=".json"
+                        onChange={importState}
+                        className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+                        style={{ minWidth: "auto" }}
+                      />
+                      <Upload className="w-4 h-4 mr-2 group-hover:text-blue-400 transition-colors" />
+                      <span className="group-hover:text-blue-400 transition-colors">
+                        Import
+                      </span>
+                    </Button>
+                  </div>
 
-            {/* Import Button */}
-            <div className="relative">
-              <Button
-                variant="outline"
-                size="sm"
-                className="min-w-[120px] bg-slate-800/50 border-slate-700 text-slate-300 
-                  hover:bg-slate-800 hover:border-blue-500/50 transition-all group cursor-pointer"
-              >
-                <input
-                  type="file"
-                  accept=".json"
-                  onChange={importState}
-                  className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
-                  style={{ minWidth: "auto" }}
-                />
-                <Upload className="w-4 h-4 mr-2 group-hover:text-blue-400 transition-colors" />
-                <span className="group-hover:text-blue-400 transition-colors">
-                  Import
-                </span>
-              </Button>
-              <div className="absolute -bottom-6 left-0 right-0 text-center">
-                <p className="text-xs text-slate-500">
-                  {/* Show file name if selected */}
-                </p>
+                  <Button
+                    onClick={resetState}
+                    variant="outline"
+                    size="sm"
+                    className="bg-slate-800/50 border-red-900/50 text-red-300 
+                      hover:bg-red-950/50 hover:border-red-500/50 transition-all group"
+                  >
+                    <Trash2 className="w-4 h-4 mr-2 group-hover:text-red-400 transition-colors" />
+                    <span className="group-hover:text-red-400 transition-colors">
+                      Reset
+                    </span>
+                  </Button>
+                </div>
               </div>
             </div>
 
-            {/* Reset Button */}
-            <Button
-              onClick={resetState}
-              variant="outline"
-              size="sm"
-              className="min-w-[120px] bg-slate-800/50 border-red-900/50 text-red-300 
-                hover:bg-red-950/50 hover:border-red-500/50 transition-all group"
-            >
-              <Trash2 className="w-4 h-4 mr-2 group-hover:text-red-400 transition-colors" />
-              <span className="group-hover:text-red-400 transition-colors">
-                Reset
-              </span>
-            </Button>
+            {/* Task Input - Expanded */}
+            <div className="w-[600px] bg-slate-800/50 rounded-lg p-4">
+              <TaskInput
+                onAddTask={handleAddTask}
+                availableTags={availableTags}
+                onAddTag={handleAddTag}
+                onDeleteTag={handleDeleteTag}
+              />
+            </div>
           </div>
         </header>
-
-        {/* Task Input */}
-        <div className="bg-slate-800/50 rounded-lg p-6 max-w-2xl mx-auto">
-          <TaskInput
-            onAddTask={handleAddTask}
-            availableTags={availableTags}
-            onAddTag={handleAddTag}
-            onDeleteTag={handleDeleteTag}
-          />
-        </div>
 
         {/* Board Header */}
         <div className="flex items-center justify-between">
@@ -382,46 +380,47 @@ const Index = () => {
 
         {/* Columns */}
         <DndProvider onDragEnd={handleDragEnd}>
-          <div className="flex gap-6 overflow-x-auto pb-8">
+          <div className="flex gap-6 overflow-x-auto pb-8 custom-scroll relative z-0">
             {columns.map((column) => (
-              <Column
-                key={column.id}
-                id={column.id}
-                title={column.title}
-                tasks={column.tasks}
-                onAddTask={(title) => {
-                  const newTask: Task = {
-                    id: `task-${Date.now()}`,
-                    title,
-                    status: column.id as TaskStatus,
-                    completed: false,
-                    tags: [],
-                  };
-                  setColumns((cols) =>
-                    cols.map((col) =>
-                      col.id === column.id
-                        ? { ...col, tasks: [...col.tasks, newTask] }
-                        : col
-                    )
-                  );
-                }}
-                onDeleteTask={(taskId) => {
-                  setColumns((cols) =>
-                    cols.map((col) => ({
-                      ...col,
-                      tasks: col.tasks.filter((task) => task.id !== taskId),
-                    }))
-                  );
-                }}
-                onDeleteColumn={() => handleDeleteColumn(column.id)}
-                onRenameColumn={(newTitle) =>
-                  handleRenameColumn(column.id, newTitle)
-                }
-                onEditTask={(taskId, updates) =>
-                  handleEditTask(taskId, updates as Partial<Task>)
-                }
-                availableTags={availableTags}
-              />
+              <div key={column.id} className="column-enter relative z-0">
+                <Column
+                  id={column.id}
+                  title={column.title}
+                  tasks={column.tasks}
+                  onAddTask={(title) => {
+                    const newTask: Task = {
+                      id: `task-${Date.now()}`,
+                      title,
+                      status: column.id as TaskStatus,
+                      completed: false,
+                      tags: [],
+                    };
+                    setColumns((cols) =>
+                      cols.map((col) =>
+                        col.id === column.id
+                          ? { ...col, tasks: [...col.tasks, newTask] }
+                          : col
+                      )
+                    );
+                  }}
+                  onDeleteTask={(taskId) => {
+                    setColumns((cols) =>
+                      cols.map((col) => ({
+                        ...col,
+                        tasks: col.tasks.filter((task) => task.id !== taskId),
+                      }))
+                    );
+                  }}
+                  onDeleteColumn={() => handleDeleteColumn(column.id)}
+                  onRenameColumn={(newTitle) =>
+                    handleRenameColumn(column.id, newTitle)
+                  }
+                  onEditTask={(taskId, updates) =>
+                    handleEditTask(taskId, updates as Partial<Task>)
+                  }
+                  availableTags={availableTags}
+                />
+              </div>
             ))}
           </div>
         </DndProvider>
