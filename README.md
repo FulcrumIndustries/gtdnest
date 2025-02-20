@@ -1,110 +1,61 @@
 # GTD Nest 🪺
 
-**Organize Your Tasks, Get Things Done**
+A beautiful task management app that helps you organize your work with a clean, drag-and-drop interface.
 
-![App Screenshot](/public/screenshot.png)
+![App Screenshot](/public/og-image.png)
 
-## Features ✨
+## ✨ Features
 
-- **Drag & Drop Interface**  
-  Move tasks between columns with smooth animations
-- **Smart Task Management**  
-  ✏️ Edit task details & tags  
-  🏷️ Create custom tags & assign to tasks  
-  🗑️ Delete tasks/columns with undo safety
-- **Multi-Column Workspace**  
-  ➕ Add unlimited columns  
-  ✏️ Rename columns  
-  ↔️ Reorganize visually
-- **Data Management**  
-  📤 Export all data to JSON  
-  📥 Import previous backups  
-  🔄 One-click reset
-- **Modern UX**  
-  🌑 Dark mode by default  
-  📱 Mobile-responsive  
-  🎨 Clean minimalist design
+- 🎯 **Smart Task Management**
 
-## Quick Start 🚀
+  - Drag & drop tasks between columns
+  - Edit task details and add tags
+  - Colorful task cards for better organization
 
-1. **Clone repository**
+- 📋 **Flexible Workspace**
+
+  - Create custom columns
+  - Rename and reorder as needed
+  - Quick task entry with tags
+
+- 💾 **Data Control**
+  - Auto-saves to browser storage
+  - Export/Import your data
+  - Easy reset option
+
+## 🚀 Quick Start
+
+### Method A:
+
+1. Download the executable from the releases.
+2. Run the executable for your platform (Windows, MacOS, Linux).
+
+### Method B:
+
+1. Clone the repository.
+2. Install dependencies.
+3. Start the development server.
 
 ```bash
-git clone <YOUR_GIT_URL>
-cd <PROJECT_DIRECTORY>
-```
-
-2. **Install dependencies**
-
-```bash
+# Install dependencies
 npm install
-```
 
-3. **Run development server**
-
-```bash
+# Start development server
 npm run dev
+
+# Build for production
+npm run build
 ```
 
-4. **Open in browser**  
-   `http://localhost:8080`
+## 💻 Development
 
-## Core Workflows 💼
+Built with modern web technologies:
 
-### Adding Tasks
+- React + TypeScript
+- Tailwind CSS
+- dnd-kit for drag & drop
+- Vite for blazing fast builds
 
-1. Type task in main input
-2. (Optional) Add tags with # prefix
-3. Press Enter or click + button
+## 📄 License
 
-### Managing Columns
-
-```plaintext
-# Add Column ➕ - Click "Add Column" in top right
-# Edit Column - Click pencil icon in column header
-# Delete Column - Click trash icon in column header
-```
-
-### Advanced Features
-
-```plaintext
-# Tag Management
-- Add new tags in task detail modal
-- Delete tags from global pool
-
-# Data Safety
-- Automatic local backup
-- Manual export/import
-- Full reset option
-```
-
-## Tech Stack ⚙️
-
-- **Frontend**  
-  <img src="https://img.shields.io/badge/React-20232A?logo=react&logoColor=61DAFB" alt="React">  
-  <img src="https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white" alt="TypeScript">
-
-- **State & Drag**  
-  <img src="https://img.shields.io/badge/dnd--kit-2B2D42?logo=data:image/svg+xml;base64,..." alt="dnd-kit">
-
-- **Styling**  
-  <img src="https://img.shields.io/badge/Tailwind_CSS-38B2AC?logo=tailwind-css&logoColor=white" alt="Tailwind CSS">
-
-- **Tooling**  
-  <img src="https://img.shields.io/badge/Vite-B73BFE?logo=vite&logoColor=FFD62E" alt="Vite">
-
-## Deployment 🚀
-
-1. **Through Lovable**  
-   Open [project page](https://lovable.dev/projects/4f8141dc-0df2-45ea-9e4c-aecc55f453fe) → Share → Publish
-
-2. **Self-hosted**  
-   [![Deploy to Netlify](https://www.netlify.com/img/deploy/button.svg)](https://app.netlify.com/start)
-
-## Contributors 👥
-
-- [Fulcrum Industries](https://github.com/FulcrumIndustries)
-
-## License 📄
-
-MIT License © 2024 [FulcrumIndustries]
+MIT © [Fulcrum Industries](https://github.com/FulcrumIndustries)

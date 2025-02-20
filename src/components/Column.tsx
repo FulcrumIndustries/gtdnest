@@ -1,9 +1,12 @@
-import { useState } from 'react';
-import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
-import { useDroppable } from '@dnd-kit/core';
-import { TaskCard } from './TaskCard';
-import { Pen, Trash2, X } from 'lucide-react';
-import { Task } from '@/types';
+import { useState } from "react";
+import {
+  SortableContext,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { useDroppable } from "@dnd-kit/core";
+import { TaskCard } from "./TaskCard";
+import { Pen, Trash2, X } from "lucide-react";
+import { Task } from "@/types";
 
 type ColumnProps = {
   id: string;
@@ -13,7 +16,7 @@ type ColumnProps = {
   onDeleteTask: (id: string) => void;
   onDeleteColumn: () => void;
   onRenameColumn: (newTitle: string) => void;
-  onEditTask: (taskId: string, newTitle: string) => void;
+  onEditTask: (taskId: string, updates: Partial<Task>) => void;
   availableTags: string[];
 };
 
@@ -28,7 +31,7 @@ export function Column({
   onEditTask,
   availableTags,
 }: ColumnProps) {
-  const [newTaskTitle, setNewTaskTitle] = useState('');
+  const [newTaskTitle, setNewTaskTitle] = useState("");
   const [isEditing, setIsEditing] = useState(false);
   const [editedTitle, setEditedTitle] = useState(title);
   const { setNodeRef } = useDroppable({ id });
@@ -44,6 +47,16 @@ export function Column({
             type="text"
             value={editedTitle}
             onChange={(e) => setEditedTitle(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                onRenameColumn(editedTitle);
+                setIsEditing(false);
+              }
+            }}
+            onBlur={() => {
+              onRenameColumn(editedTitle);
+              setIsEditing(false);
+            }}
             className="bg-slate-700/50 border border-slate-600 rounded px-2 py-1 text-white w-full"
             autoFocus
           />
@@ -65,15 +78,17 @@ export function Column({
           <Trash2 className="h-4 w-4" />
         </button>
       </div>
-      
+
       <div className="mb-4">
-        <form onSubmit={(e) => {
-          e.preventDefault();
-          if (newTaskTitle.trim()) {
-            onAddTask(newTaskTitle.trim());
-            setNewTaskTitle('');
-          }
-        }}>
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            if (newTaskTitle.trim()) {
+              onAddTask(newTaskTitle.trim());
+              setNewTaskTitle("");
+            }
+          }}
+        >
           <input
             type="text"
             value={newTaskTitle}
@@ -84,7 +99,10 @@ export function Column({
         </form>
       </div>
 
-      <SortableContext items={tasks.map(t => t.id)} strategy={verticalListSortingStrategy}>
+      <SortableContext
+        items={tasks.map((t) => t.id)}
+        strategy={verticalListSortingStrategy}
+      >
         <div className="space-y-2 min-h-[200px]">
           {tasks.map((task) => (
             <div key={task.id} className="task-enter">
@@ -102,4 +120,4 @@ export function Column({
       </SortableContext>
     </div>
   );
-} 
+}
