@@ -8,7 +8,12 @@
     "build": "vite build",
     "build:dev": "vite build --mode development",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "pkg:build": "vite build && tsc --allowJs --esModuleInterop src/server.ts --outDir dist/server --module CommonJS",
+    "pkg:win": "pkg dist/server/server.js --targets node18-win-x64 --output bin/gtd-nest-win.exe --assets dist/**/*",
+    "pkg:mac": "pkg dist/server/server.js --targets node18-macos-x64 --output bin/gtd-nest-mac --assets dist/**/*",
+    "pkg:linux": "pkg dist/server/server.js --targets node18-linux-x64 --output bin/gtd-nest-linux --assets dist/**/*",
+    "pkg:all": "npm run pkg:build && npm run pkg:win && npm run pkg:mac && npm run pkg:linux"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",
@@ -48,6 +53,7 @@
     "cmdk": "^1.0.0",
     "date-fns": "^3.6.0",
     "embla-carousel-react": "^8.3.0",
+    "express": "^4.21.2",
     "input-otp": "^1.2.4",
     "next-themes": "^0.3.0",
     "react": "^18.3.1",
@@ -75,8 +81,8 @@
     "eslint-plugin-react-hooks": "^5.1.0-rc.0",
     "eslint-plugin-react-refresh": "^0.4.9",
     "globals": "^15.9.0",
-    "lovable-tagger": "^1.0.19",
     "lucide-react": "^0.474.0",
+    "pkg": "^5.8.1",
     "postcss": "^8.4.47",
     "tailwindcss": "^3.4.11",
     "typescript": "^5.5.3",

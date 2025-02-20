@@ -51,8 +51,8 @@ export function TaskCard({
         {...listeners}
         className={`
           group flex flex-col gap-2 p-3 rounded-lg
-          bg-slate-700/50 border border-slate-600
-          hover:border-slate-500 hover:bg-slate-700/70
+          ${task.color || 'bg-slate-700/50 border-slate-600'} 
+          hover:border-slate-500
           ${isDragging ? "shadow-xl ring-2 ring-blue-500/50" : ""}
           transition-all duration-200 ease-out
         `}

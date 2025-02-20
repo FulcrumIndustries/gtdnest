@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { X, Plus, Tag } from 'lucide-react';
 import { Task } from '@/types';
+import { taskColors } from '@/lib/colors';
 
 type TaskDetailModalProps = {
   task: Task;
@@ -76,6 +77,27 @@ export function TaskDetailModal({ task, onClose, onSave, availableTags = [] }: T
                     text-white focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
                   placeholder="Add a more detailed description..."
                 />
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm text-slate-400">Color</label>
+                <div className="flex flex-wrap gap-2">
+                  {taskColors.map((color) => (
+                    <button
+                      key={color}
+                      onClick={() => setEditedTask({ ...editedTask, color })}
+                      className={`
+                        w-8 h-8 rounded-lg transition-all
+                        ${color.split(' ')[0]} border
+                        ${editedTask.color === color 
+                          ? 'ring-2 ring-blue-500 scale-110' 
+                          : 'hover:scale-105'
+                        }
+                      `}
+                      title="Change task color"
+                    />
+                  ))}
+                </div>
               </div>
 
               {/* Tags Section */}

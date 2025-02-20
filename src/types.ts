@@ -7,4 +7,5 @@ export type Task = {
   completed?: boolean;
   tags?: string[];
   description?: string;
+  color: string;
 }; 

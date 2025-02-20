@@ -18,16 +18,9 @@ import {
 import { Button } from "@/components/ui/button";
 
 import { CSS } from "@dnd-kit/utilities";
+import { Task, TaskStatus } from "@/types";
 
-export type TaskStatus = "today" | "tomorrow" | "next" | "waiting" | "someday";
-
-export interface Task {
-  id: string;
-  title: string;
-  status: TaskStatus;
-  completed: boolean;
-  tags?: string[];
-}
+export type { Task, TaskStatus };
 
 interface TaskListProps {
   tasks: Task[];

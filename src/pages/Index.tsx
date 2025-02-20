@@ -10,6 +10,7 @@ import { DragEndEvent } from "@dnd-kit/core";
 import { arrayMove } from "@dnd-kit/sortable";
 import { Column } from "@/components/Column";
 import { AddColumnButton } from "@/components/AddColumnButton";
+import { getRandomTaskColor } from "@/lib/colors";
 
 const INITIAL_TASKS: Task[] = [
   {
@@ -18,6 +19,7 @@ const INITIAL_TASKS: Task[] = [
     status: "today",
     completed: false,
     tags: ["work"],
+    color: "bg-blue-500/20 border-blue-500/30 hover:bg-blue-500/30",
   },
   {
     id: "2",
@@ -25,12 +27,14 @@ const INITIAL_TASKS: Task[] = [
     status: "today",
     completed: false,
     tags: ["work", "important"],
+    color: "bg-purple-500/20 border-purple-500/30 hover:bg-purple-500/30",
   },
   {
     id: "3",
     title: "Review quarterly goals",
     status: "tomorrow",
     completed: false,
+    color: "bg-emerald-500/20 border-emerald-500/30 hover:bg-emerald-500/30",
   },
 ];
 
@@ -69,10 +73,20 @@ const Index = () => {
 
   // Load state from localStorage on component mount
   useEffect(() => {
-    const savedState = localStorage.getItem("gtdNestState");
-    if (savedState) {
-      const { columns: savedColumns } = JSON.parse(savedState);
-      setColumns(savedColumns);
+    const savedColumns = localStorage.getItem("columns");
+    if (savedColumns) {
+      try {
+        const parsed = JSON.parse(savedColumns);
+        // Ensure we have both tasks and title for each column
+        const validColumns = parsed.map((col: any) => ({
+          id: col.id,
+          title: col.title || col.id, // Fallback to id if title missing
+          tasks: Array.isArray(col.tasks) ? col.tasks : [],
+        }));
+        setColumns(validColumns);
+      } catch (e) {
+        console.error("Failed to parse saved columns:", e);
+      }
     }
   }, []);
 
@@ -89,6 +103,7 @@ const Index = () => {
       status: columns[0].id as TaskStatus,
       completed: false,
       tags: tags || [],
+      color: getRandomTaskColor(),
     };
     setColumns((cols) =>
       cols.map((col) =>
@@ -135,40 +150,95 @@ const Index = () => {
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
-    if (!over || active.id === over.id) return;
 
-    const activeColumn = columns.find((col) =>
-      col.tasks.some((task) => task.id === active.id)
-    );
-    const overColumn = columns.find(
-      (col) =>
-        col.id === over.id || col.tasks.some((task) => task.id === over.id)
-    );
+    if (!over) return;
 
-    if (!activeColumn || !overColumn) return;
+    const activeId = active.id;
+    const overId = over.id;
 
-    const activeTask = activeColumn.tasks.find((task) => task.id === active.id);
-    if (!activeTask) return;
+    // Find source column and task
+    let sourceColumn;
+    let taskToMove;
+    let overColumn;
+    let overTask;
 
-    if (activeColumn.id === overColumn.id && active.id === over.id) return;
+    for (const column of columns) {
+      const task = column.tasks.find((t) => t.id === activeId);
+      if (task) {
+        sourceColumn = column;
+        taskToMove = task;
+      }
 
-    setColumns((columns) =>
-      columns.map((col) => {
+      // Also find the target task and its column
+      const targetTask = column.tasks.find((t) => t.id === overId);
+      if (targetTask) {
+        overColumn = column;
+        overTask = targetTask;
+      }
+    }
+
+    if (!sourceColumn || !taskToMove) return;
+
+    // Determine target column - either the column we dropped on directly,
+    // or the column containing the task we dropped on
+    const targetColumnId = overTask ? overColumn.id : overId;
+
+    // If dropping in the same column, reorder tasks
+    if (sourceColumn.id === targetColumnId) {
+      setColumns((cols) =>
+        cols.map((col) => {
+          if (col.id === sourceColumn.id) {
+            const newTasks = [...col.tasks];
+            const oldIndex = newTasks.findIndex((t) => t.id === activeId);
+            const newIndex = overTask
+              ? newTasks.findIndex((t) => t.id === overId) + 1
+              : newTasks.length;
+
+            // Remove task from old position
+            newTasks.splice(oldIndex, 1);
+            // Insert at new position
+            newTasks.splice(
+              newIndex - (newIndex > oldIndex ? 1 : 0),
+              0,
+              taskToMove
+            );
+
+            return {
+              ...col,
+              tasks: newTasks,
+            };
+          }
+          return col;
+        })
+      );
+      return;
+    }
+
+    // Moving to different column
+    setColumns((cols) =>
+      cols.map((col) => {
         // Remove from source column
-        if (col.id === activeColumn.id) {
+        if (col.id === sourceColumn.id) {
           return {
             ...col,
-            tasks: col.tasks.filter((task) => task.id !== active.id),
+            tasks: col.tasks.filter((t) => t.id !== activeId),
           };
         }
-        // Add to target column
-        if (col.id === overColumn.id) {
+        // Add to destination column
+        if (col.id === targetColumnId) {
+          const newTasks = [...col.tasks];
+          const insertIndex = overTask
+            ? newTasks.findIndex((t) => t.id === overId) + 1
+            : newTasks.length;
+
+          newTasks.splice(insertIndex, 0, {
+            ...taskToMove,
+            status: targetColumnId as TaskStatus,
+          });
+
           return {
             ...col,
-            tasks: [
-              ...col.tasks,
-              { ...activeTask, status: col.id as TaskStatus },
-            ],
+            tasks: newTasks,
           };
         }
         return col;
@@ -254,11 +324,13 @@ const Index = () => {
   };
 
   const handleRenameColumn = (columnId: string, newTitle: string) => {
-    setColumns(
-      columns.map((col) =>
+    setColumns((cols) =>
+      cols.map((col) =>
         col.id === columnId ? { ...col, title: newTitle } : col
       )
     );
+    // Save immediately after rename
+    localStorage.setItem("columns", JSON.stringify(columns));
   };
 
   const handleDeleteColumn = (columnId: string) => {
@@ -309,53 +381,59 @@ const Index = () => {
               </p>
               <div className="flex items-center gap-4 mt-4">
                 {/* Action Buttons */}
-                <div className="flex gap-2">
-                  <Button
-                    onClick={exportState}
-                    variant="outline"
-                    size="sm"
-                    className="bg-slate-800/50 border-slate-700 text-slate-300 
-                      hover:bg-slate-800 hover:border-blue-500/50 transition-all group"
-                  >
-                    <Download className="w-4 h-4 mr-2 group-hover:text-blue-400 transition-colors" />
-                    <span className="group-hover:text-blue-400 transition-colors">
-                      Export
-                    </span>
-                  </Button>
-
-                  <div className="relative">
+                <div className="space-y-2">
+                  <div className="flex gap-2">
                     <Button
+                      onClick={exportState}
                       variant="outline"
                       size="sm"
                       className="bg-slate-800/50 border-slate-700 text-slate-300 
-                        hover:bg-slate-800 hover:border-blue-500/50 transition-all group cursor-pointer"
+                        hover:bg-slate-800 hover:border-blue-500/50 transition-all group"
                     >
-                      <input
-                        type="file"
-                        accept=".json"
-                        onChange={importState}
-                        className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
-                        style={{ minWidth: "auto" }}
-                      />
-                      <Upload className="w-4 h-4 mr-2 group-hover:text-blue-400 transition-colors" />
+                      <Download className="w-4 h-4 mr-2 group-hover:text-blue-400 transition-colors" />
                       <span className="group-hover:text-blue-400 transition-colors">
-                        Import
+                        Export
+                      </span>
+                    </Button>
+
+                    <div className="relative">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="bg-slate-800/50 border-slate-700 text-slate-300 
+                          hover:bg-slate-800 hover:border-blue-500/50 transition-all group cursor-pointer"
+                      >
+                        <input
+                          type="file"
+                          accept=".json"
+                          onChange={importState}
+                          className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+                          style={{ minWidth: "auto" }}
+                        />
+                        <Upload className="w-4 h-4 mr-2 group-hover:text-blue-400 transition-colors" />
+                        <span className="group-hover:text-blue-400 transition-colors">
+                          Import
+                        </span>
+                      </Button>
+                    </div>
+
+                    <Button
+                      onClick={resetState}
+                      variant="outline"
+                      size="sm"
+                      className="bg-slate-800/50 border-red-900/50 text-red-300 
+                        hover:bg-red-950/50 hover:border-red-500/50 transition-all group"
+                    >
+                      <Trash2 className="w-4 h-4 mr-2 group-hover:text-red-400 transition-colors" />
+                      <span className="group-hover:text-red-400 transition-colors">
+                        Reset Local Storage
                       </span>
                     </Button>
                   </div>
-
-                  <Button
-                    onClick={resetState}
-                    variant="outline"
-                    size="sm"
-                    className="bg-slate-800/50 border-red-900/50 text-red-300 
-                      hover:bg-red-950/50 hover:border-red-500/50 transition-all group"
-                  >
-                    <Trash2 className="w-4 h-4 mr-2 group-hover:text-red-400 transition-colors" />
-                    <span className="group-hover:text-red-400 transition-colors">
-                      Reset
-                    </span>
-                  </Button>
+                  <p className="text-sm text-slate-500 italic">
+                    Everything is saved dynamically in your browser local
+                    storage.
+                  </p>
                 </div>
               </div>
             </div>
@@ -394,6 +472,7 @@ const Index = () => {
                       status: column.id as TaskStatus,
                       completed: false,
                       tags: [],
+                      color: getRandomTaskColor(),
                     };
                     setColumns((cols) =>
                       cols.map((col) =>
