@@ -17,7 +17,7 @@ dist-ssr
 # Local
 *.local
 
-# Bin
+# Bin directories and files
 bin/*
 bin
 
